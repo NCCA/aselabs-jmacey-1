@@ -15,3 +15,19 @@ def test_create_with_values():
     assert v.x == 1
     assert v.y == 2
     assert v.z == 3
+    
+    
+def test_add() :
+    v1 = Vec3(1,2,3)
+    v2 = Vec3(2,3,4)
+    v3 = v1 + v2
+    assert v3.x == 3
+    assert v3.y == 5
+    assert v3.z == 7
+    
+    
+    
+    
+    
+    
+    
