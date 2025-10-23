@@ -64,19 +64,17 @@ class Image:
         Returns:
             A tuple of RGBA values.
         """
-        if value is None:
-            return (255, 255, 255, 255)
-        elif isinstance(value, rgba):
-            return value.as_tuple()
-        elif isinstance(value, tuple):
-            if len(value) == 3:
-                return (value[0], value[1], value[2], 255)
-            elif len(value) == 4:
-                return value
-            else:
-                raise ValueError("fill_colour not the correct size!")
-        else:
-            raise ValueError("wrong type")
+        match value:
+            case None:
+                return (255, 255, 255, 255)
+            case rgba(r, g, b, a):
+                return (r, g, b, a)
+            case (r, g, b):
+                return (r, g, b, 255)
+            case (r, g, b, a):
+                return (r, g, b, a)
+            case _:  # catch all
+                raise TypeError(f"Invalid type for RGBA color: {type(value).__name__}")
 
     @property
     def width(self) -> int:
