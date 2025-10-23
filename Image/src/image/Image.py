@@ -49,7 +49,7 @@ class Image:
         else:
             raise ValueError("wrong type")
 
-        self._rgba_data = np.full((self._width, self._height, 4), fill.as_tuple(), dtype=np.uint8)
+        self._rgba_data = np.full((self._height, self._width, 4), fill.as_tuple(), dtype=np.uint8)
 
     @property
     def width(self) -> int:
@@ -70,3 +70,34 @@ class Image:
     def save(self, name: str):
         img = PILImage.fromarray(self._rgba_data)
         img.save(name)
+
+    def get_pixel(self, x: int, y: int) -> Tuple[int, int, int, int]:
+        """
+        Get the pixel at x,y and return as tuple
+
+        Args :
+            x (int) : x cord of the pixel
+            y (int) : y cord of the pixel
+
+        Returns current r,g,b,a of the pixel if range valid
+        """
+        if 0 <= x < self.width and 0 <= y and self.height:
+            return self._rgba_data[y, x]
+        else:
+            raise IndexError(f"x,y values out of range {x=} {self.width=} {y=} {self.height=} ")
+
+    def set_pixel(self, x: int, y: int, value: Union[tuple, rgba]) -> None:
+        if 0 <= x < self.width and 0 <= y < self.height:
+            if isinstance(value, rgba):
+                self._rgba_data[y, x] = value.as_tuple()
+            elif isinstance(value, tuple):
+                if len(value) == 3:
+                    self._rgba_data[y, x] = (*value, 255)
+                elif len(value) == 4:
+                    self._rgba_data[y, x] = value
+                else:
+                    raise ValueError("list not valid size")
+            else:
+                raise ValueError("Wrong datatype for pixel data")
+        else:
+            raise IndexError(f"x,y values out of range {x=} {self.width=} {y=} {self.height=} ")
