@@ -146,3 +146,6 @@ class Image:
         self._check_bounds(x, y)
         validated_value = self._validate_rgba(value)
         self._rgba_data[y, x] = validated_value
+
+    def clear(self, colour):
+        self._rgba_data[:] = colour
