@@ -18,14 +18,21 @@ class DLA:
     def save_image(self, fname: str) -> None:
         self.output_image.save(fname)
 
+    def _random_colour(self):
+        r = random.randint(0, 255)
+        g = random.randint(0, 255)
+        b = random.randint(0, 255)
+        return r, g, b
+
     def random_seed(self) -> None:
         """
         place a random seed inside the boundary with a=0
         """
         x = random.randint(1, self.width - 1)
         y = random.randint(1, self.height - 1)
-        self.sim_data.set_pixel(x, y, (255, 255, 255, 0))
-        self.output_image.set_pixel(x, y, (0, 255, 0, 255))  # seeds are now green
+        r, g, b = self._random_colour()
+        self.sim_data.set_pixel(x, y, (r, g, b, 0))
+        self.output_image.set_pixel(x, y, (r, g, b, 255))  # seeds are now green
 
     def set_seed(self, x: int, y: int) -> None:
         self.sim_data.set_pixel(x, y, (255, 255, 255, 0))
@@ -42,8 +49,11 @@ class DLA:
         x, y = self._random_start()
         # 1 loop until we either hit an edge or find a seed
         while walking:
-            x += random.choice([-1, 0, 1])
-            y += random.choice([-1, 0, 1])
+            xbias = random.randint(0, 5)
+            ybias = random.randint(0, 5)
+
+            x += random.choice([-xbias, 0, xbias])
+            y += random.choice([-ybias, 0, ybias])
             # check bounds and quit if edge is hit
             if x < 1 or x >= self.width - 1 or y < 1 or y >= self.height - 1:
                 print("hit edge")
@@ -53,11 +63,11 @@ class DLA:
             else:  # check for seed
                 for x_offset in [-1, 0, 1]:
                     for y_offset in [-1, 0, 1]:
-                        pixel_colour = self.sim_data.get_pixel(x + x_offset, y + y_offset)
-                        if pixel_colour[3] == 0:
+                        r, g, b, a = self.sim_data.get_pixel(x + x_offset, y + y_offset)
+                        if a == 0:
                             print("Found Seed")
-                            self.sim_data.set_pixel(x, y, (255, 0, 0, 0))
-                            self.output_image.set_pixel(x, y, (0, 0, 255, 255))
+                            self.sim_data.set_pixel(x, y, (r, g, b, 0))
+                            self.output_image.set_pixel(x, y, (r, g, b, 255))
                             found = True
                             walking = False
                             break
@@ -69,10 +79,10 @@ class DLA:
 
 def main(output_dir: str, file_name: str, width: int, height: int):
     sim = DLA(args.width, args.height)
-    # for _ in range(20):
-    #     sim.random_seed()
-    for x in range(width):
-        sim.set_seed(x, height // 2)
+    for _ in range(20):
+        sim.random_seed()
+    # for x in range(width):
+    #     sim.set_seed(x, height // 2)
     frame_number = 0
     found_count = 0
     for _ in range(10000):
