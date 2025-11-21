@@ -1,0 +1,16 @@
+OpenGLContextProfile.CoreProfile OpenGL 4 6
+[36m10:30:38 - INFO - Registered uniform: MVP (type: mat4, location: 0)[0m
+[36m10:30:38 - INFO - FOUND UNIFORM BLOCKS 0[0m
+[36m10:30:38 - INFO - Shader program 'Pass' created[0m
+[36m10:30:38 - INFO - Loading default primitives...[0m
+Error calling Python override of QOpenGLWindow::paintGL(): Traceback (most recent call last):
+  File "/home/jmacey/Desktop/ASE/aselabs-jmacey-1/ParticlePyNGL/./main.py", line 39, in paintGL
+    tx.set_scal(p.size,p.size,p.size)
+    ^^^^^^^^^^^
+AttributeError: 'Transform' object has no attribute 'set_scal'. Did you mean: 'set_scale'?
+Error calling Python override of QOpenGLWindow::paintGL(): Traceback (most recent call last):
+  File "/home/jmacey/Desktop/ASE/aselabs-jmacey-1/ParticlePyNGL/./main.py", line 39, in paintGL
+    tx.set_scal(p.size,p.size,p.size)
+    ^^^^^^^^^^^
+AttributeError: 'Transform' object has no attribute 'set_scal'. Did you mean: 'set_scale'?
+Resize 1024 720
