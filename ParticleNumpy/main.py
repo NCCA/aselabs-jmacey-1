@@ -40,10 +40,10 @@ class MainWindow(QOpenGLWindow):
         gl.glEnable(gl.GL_DEPTH_TEST)
         gl.glEnable(gl.GL_MULTISAMPLE)
         self.vao = VAOFactory.create_vao(VAOType.MULTI_BUFFER, gl.GL_POINTS)
-        with self.vao:
+        with self.vao as vao:
             data = VertexData(data=[], size=0)
-            self.vao.set_data(data, index=0)  # index 0 is positions
-            self.vao.set_data(data, index=1)  # index 1 is colours
+            vao.set_data(data, index=0)  # index 0 is positions
+            vao.set_data(data, index=1)  # index 1 is colours
 
     def resizeGL(self, w: int, h: int):
         print(f"Resize {w} {h}")
@@ -65,17 +65,17 @@ class MainWindow(QOpenGLWindow):
         gl.glViewport(0, 0, self.width(), self.height())
         gl.glPointSize(4)
         ShaderLib.set_uniform("MVP", self.project @ self.view)
-        with self.vao:
+        with self.vao as vao:
             data = VertexData(data=self.emitter.position.flatten(), size=self.emitter.position.nbytes)
-            self.vao.set_data(data, index=0)
-            self.vao.set_vertex_attribute_pointer(0, 3, gl.GL_FLOAT, 0, 0)
+            vao.set_data(data, index=0)
+            vao.set_vertex_attribute_pointer(0, 3, gl.GL_FLOAT, 0, 0)
 
             data = VertexData(data=self.emitter.colour.flatten(), size=self.emitter.colour.nbytes)
-            self.vao.set_data(data, index=1)
-            self.vao.set_vertex_attribute_pointer(1, 3, gl.GL_FLOAT, 0, 0)
+            vao.set_data(data, index=1)
+            vao.set_vertex_attribute_pointer(1, 3, gl.GL_FLOAT, 0, 0)
 
-            self.vao.set_num_indices(len(self.emitter.position))
-            self.vao.draw()
+            vao.set_num_indices(len(self.emitter.position))
+            vao.draw()
 
     def timerEvent(self, event):
         self.emitter.update(0.01)
