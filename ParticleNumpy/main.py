@@ -3,6 +3,7 @@
 
 import sys
 
+import numpy as np
 import OpenGL.GL as gl
 from ncca.ngl import (
     Primitives,
@@ -28,6 +29,7 @@ class MainWindow(QOpenGLWindow):
     def __init__(self):
         super().__init__()
         self.setTitle("PyNGL Demo")
+        self.animate = True
 
     def initializeGL(self):
         gl.glClearColor(0.4, 0.4, 0.4, 1.0)
@@ -35,7 +37,7 @@ class MainWindow(QOpenGLWindow):
         ShaderLib.use("Pass")
         self.view = look_at(Vec3(0, 0, 20), Vec3(0, 0, 0), Vec3(0, 1, 0))
         self.project = perspective(45.0, 1, 0.01, 200)
-        self.emitter = Emitter(Vec3(0, 0, 0), 10000)
+        self.emitter = Emitter(Vec3(0, 0, 0), 5000, 2500, 200, (30, 200))
         self.startTimer(16)
         gl.glEnable(gl.GL_DEPTH_TEST)
         gl.glEnable(gl.GL_MULTISAMPLE)
@@ -57,18 +59,23 @@ class MainWindow(QOpenGLWindow):
             gl.glPolygonMode(gl.GL_FRONT_AND_BACK, gl.GL_LINE)
         elif key == Qt.Key_S:
             gl.glPolygonMode(gl.GL_FRONT_AND_BACK, gl.GL_FILL)
+        elif key == Qt.Key_A:
+            self.animate ^= True
+        elif key == Qt.Key_1:
+            self.emitter.update(0.01)
 
         self.update()
 
     def paintGL(self):
         gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
         gl.glViewport(0, 0, self.width(), self.height())
-        gl.glPointSize(4)
+        gl.glEnable(gl.GL_PROGRAM_POINT_SIZE)
         ShaderLib.set_uniform("MVP", self.project @ self.view)
         with self.vao as vao:
-            data = VertexData(data=self.emitter.position.flatten(), size=self.emitter.position.nbytes)
+            pos_size = np.concatenate([self.emitter.position, self.emitter.size[:, np.newaxis]], axis=1)
+            data = VertexData(data=pos_size.flatten(), size=pos_size.nbytes)
             vao.set_data(data, index=0)
-            vao.set_vertex_attribute_pointer(0, 3, gl.GL_FLOAT, 0, 0)
+            vao.set_vertex_attribute_pointer(0, 4, gl.GL_FLOAT, 0, 0)
 
             data = VertexData(data=self.emitter.colour.flatten(), size=self.emitter.colour.nbytes)
             vao.set_data(data, index=1)
@@ -79,7 +86,8 @@ class MainWindow(QOpenGLWindow):
 
     def timerEvent(self, event):
         self.emitter.update(0.01)
-        self.update()
+        if self.animate:
+            self.update()
 
 
 if __name__ == "__main__":

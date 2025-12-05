@@ -1,4 +1,5 @@
 import random
+from typing import Tuple
 
 import numpy as np
 from ncca.ngl import Vec3
@@ -7,7 +8,11 @@ from ncca.ngl import Vec3
 class Emitter:
     _GRAVITY = np.array((0.0, -9.81, 0.0), dtype=np.float32)
 
-    def __init__(self, position: Vec3, num_particles: int):
+    def __init__(
+        self, position: Vec3, num_particles: int, max_alive: int, max_per_frame: int, life_range: Tuple[int, int]
+    ):
+        self.max_per_frame = max_per_frame
+        self.life_range = life_range
         self._position = position
         self._position_np = position.to_numpy()
         self._num_particles = num_particles
@@ -18,11 +23,13 @@ class Emitter:
         self.life = np.zeros((self._num_particles,), dtype=int)  # r,g,b
         self.max_life = np.zeros((self._num_particles,), dtype=int)  # r,g,b
         self.size = np.zeros((self._num_particles,), dtype=np.float32)  # r,g,b
-
+        self.alive = np.full(self.num_particles, False, dtype=np.bool)
+        self.max_alive = max_alive
         self._init_particles()
 
     def _init_particles(self):
-        indices = np.arange(self._num_particles)
+        num_to_create = random.randint(10, 50)
+        indices = np.arange(num_to_create)
         self._respawn_particles(indices)
 
     def _respawn_particles(self, indices):
@@ -48,7 +55,7 @@ class Emitter:
         positions = np.tile(self._position_np.reshape(1, 3), (count, 1))
         colours = np.random.rand(count, 3)
         life = np.zeros(count, dtype=int)
-        max_life = np.random.randint(10, 51, size=count, dtype=int)
+        max_life = np.random.randint(self.life_range[0], self.life_range[1], size=count, dtype=int)
         size = np.full(count, 0.01, dtype=np.float32)
 
         self.position[idx] = positions
@@ -63,11 +70,22 @@ class Emitter:
         self.position += self.direction * dt
         self.life += 1
         self.size += 0.1
+        # create new particles if we are not at max_alive
+        if np.count_nonzero(self.alive) <= self.max_alive:
+            num_to_create = random.randint(0, self.max_per_frame)
+            # find indices of dead (false) particles
+            dead_indices = np.where(self.alive == False)[0]
+            # select num_to_create from this list
+            revive_indices = dead_indices[:num_to_create]
+            # revive them
+            self.alive[revive_indices] = True
         # now respawn dead particles
         dead_mask = self.life > self.max_life
-        if np.any(dead_mask):
+        if np.any(dead_mask) and np.any(self.alive):
             dead_indices = np.nonzero(dead_mask)[0]
             self._respawn_particles(dead_indices)
+            self.alive[dead_mask] = False
+        print(f"Num Alive {np.count_nonzero(self.alive)}")
 
     @property
     def num_particles(self):
