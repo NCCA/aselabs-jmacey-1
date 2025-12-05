@@ -6,6 +6,7 @@ import sys
 import numpy as np
 import OpenGL.GL as gl
 from ncca.ngl import (
+    FirstPersonCamera,
     Primitives,
     Prims,
     ShaderLib,
@@ -30,13 +31,18 @@ class MainWindow(QOpenGLWindow):
         super().__init__()
         self.setTitle("PyNGL Demo")
         self.animate = True
+        self.keys_pressed = set()
+        self.rotate: bool = False
+        self.original_x_pos: int = 0
+        self.original_y_pos: int = 0
 
     def initializeGL(self):
         gl.glClearColor(0.4, 0.4, 0.4, 1.0)
         ShaderLib.load_shader("Pass", "shaders/Vertex.glsl", "shaders/Fragment.glsl")
         ShaderLib.use("Pass")
-        self.view = look_at(Vec3(0, 0, 20), Vec3(0, 0, 0), Vec3(0, 1, 0))
-        self.project = perspective(45.0, 1, 0.01, 200)
+        # self.view = look_at(Vec3(0, 0, 20), Vec3(0, 0, 0), Vec3(0, 1, 0))
+        # self.project = perspective(45.0, 1, 0.01, 200)
+        self.camera = FirstPersonCamera(Vec3(0, 5, 20), Vec3(0, 0, 0), Vec3(0, 1, 0), 45.0)
         self.emitter = Emitter(Vec3(0, 0, 0), 5000, 2500, 200, (30, 200))
         self.startTimer(16)
         gl.glEnable(gl.GL_DEPTH_TEST)
@@ -48,11 +54,17 @@ class MainWindow(QOpenGLWindow):
             vao.set_data(data, index=1)  # index 1 is colours
 
     def resizeGL(self, w: int, h: int):
-        print(f"Resize {w} {h}")
-        self.project = perspective(45.0, w / h, 0.1, 200)
+        ratio = self.devicePixelRatio()
+        self.camera.set_projection(45.0, (w * ratio / h * ratio), 0.05, 200)
+
+    def keyReleaseEvent(self, event):
+        key = event.key()
+        self.keys_pressed.discard(key)
+        self.update()
 
     def keyPressEvent(self, event):
         key = event.key()
+        self.keys_pressed.add(key)
         if key == Qt.Key_Escape:
             self.close()
         elif key == Qt.Key_W:
@@ -66,11 +78,29 @@ class MainWindow(QOpenGLWindow):
 
         self.update()
 
+    def _process_camera_movements(self):
+        x_dir = 0.0
+        y_dir = 0.0
+        for key in self.keys_pressed:
+            if key == Qt.Key_Left:
+                y_dir = -1.0
+            elif key == Qt.Key_Right:
+                y_dir = 1.0
+            elif key == Qt.Key_Up:
+                x_dir = 1.0
+            elif key == Qt.Key_Down:
+                x_dir = -1.0
+
+        if x_dir != 0.0 or y_dir != 0.0:
+            self.camera.move(x_dir, y_dir, 0.1)
+
     def paintGL(self):
         gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
         gl.glViewport(0, 0, self.width(), self.height())
         gl.glEnable(gl.GL_PROGRAM_POINT_SIZE)
-        ShaderLib.set_uniform("MVP", self.project @ self.view)
+        self._process_camera_movements()
+
+        ShaderLib.set_uniform("MVP", self.camera.get_vp())
         with self.vao as vao:
             pos_size = np.concatenate([self.emitter.position, self.emitter.size[:, np.newaxis]], axis=1)
             data = VertexData(data=pos_size.flatten(), size=pos_size.nbytes)
@@ -85,8 +115,29 @@ class MainWindow(QOpenGLWindow):
             vao.draw()
 
     def timerEvent(self, event):
-        self.emitter.update(0.01)
         if self.animate:
+            self.emitter.update(0.01)
+            self.update()
+
+    def mousePressEvent(self, event):
+        position = event.position()
+        if event.button() == Qt.LeftButton:
+            self.original_x_pos = position.x()
+            self.original_y_pos = position.y()
+            self.rotate = True
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self.rotate = False
+
+    def mouseMoveEvent(self, event):
+        if self.rotate and event.buttons() == Qt.LeftButton:
+            position = event.position()
+            diff_x = position.x() - self.original_x_pos
+            diff_y = position.y() - self.original_y_pos
+            self.original_x_pos = position.x()
+            self.original_y_pos = position.y()
+            self.camera.process_mouse_movement(diff_x, -diff_y)
             self.update()
 
 
