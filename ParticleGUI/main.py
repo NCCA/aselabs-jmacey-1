@@ -21,6 +21,7 @@ class MainWindow(QMainWindow):
 
     def _connect_signals_and_slots(self):
         self.max_alive.valueChanged.connect(self.scene.update_max_alive)
+        self.num_per_frame.valueChanged.connect(self.scene.update_num_per_frame)
 
     def load_ui(self, ui_file_name: str) -> None:
         """load ui from a file"""

@@ -37,8 +37,11 @@ class PyNGLScene(QOpenGLWidget):
 
     @Slot(int)
     def update_max_alive(self, value):
-        print("update max alive", value)
         self.emitter.max_alive = value
+
+    @Slot(int)
+    def update_num_per_frame(self, value):
+        self.emitter.max_per_frame = value
 
     def initializeGL(self):
         gl.glClearColor(0.4, 0.4, 0.4, 1.0)
