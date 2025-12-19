@@ -10,6 +10,7 @@ from ncca.ngl import (
     Primitives,
     Prims,
     ShaderLib,
+    Texture,
     Transform,
     VAOFactory,
     VAOType,
@@ -43,6 +44,10 @@ class PyNGLScene(QOpenGLWidget):
     def update_num_per_frame(self, value):
         self.emitter.max_per_frame = value
 
+    @Slot(Vec3)
+    def update_emitter_pos(self, value):
+        self.emitter.emitter_position = value
+
     def initializeGL(self):
         gl.glClearColor(0.4, 0.4, 0.4, 1.0)
         ShaderLib.load_shader("Pass", "shaders/Vertex.glsl", "shaders/Fragment.glsl")
@@ -56,6 +61,9 @@ class PyNGLScene(QOpenGLWidget):
             data = VertexData(data=[], size=0)
             vao.set_data(data, index=0)  # index 0 is positions
             vao.set_data(data, index=1)  # index 1 is colours
+
+        self.texture_id = Texture("p1.png").set_texture_gl()
+
         self.startTimer(16)
 
     def resizeGL(self, w: int, h: int):
@@ -106,6 +114,10 @@ class PyNGLScene(QOpenGLWidget):
         self._process_camera_movements()
         ShaderLib.use("Pass")
         ShaderLib.set_uniform("MVP", self.camera.get_vp())
+        gl.glBindTexture(gl.GL_TEXTURE_2D, self.texture_id)
+        gl.glEnable(gl.GL_BLEND)
+        gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
+
         with self.vao as vao:
             pos_size = np.concatenate([self.emitter.position, self.emitter.size[:, np.newaxis]], axis=1)
             data = VertexData(data=pos_size.flatten(), size=pos_size.nbytes)

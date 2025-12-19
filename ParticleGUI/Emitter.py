@@ -27,6 +27,16 @@ class Emitter:
         self.max_alive = max_alive
         self._init_particles()
 
+    @property
+    def emitter_position(self):
+        return self._position
+
+    @emitter_position.setter
+    def emitter_position(self, value):
+        self._position = value
+        self._position_np = self._position.to_numpy()
+        print(self._position_np)
+
     def _init_particles(self):
         print(self.max_alive)
         num_to_create = self.max_alive  # random.randint(10, 50)
@@ -68,6 +78,7 @@ class Emitter:
         self.size[idx] = size
 
     def update(self, dt: float):
+        # only update alive particles
         alive_particles = np.where(self.alive == True)[0]
 
         self.direction[alive_particles] += Emitter._GRAVITY * (dt * 0.5)

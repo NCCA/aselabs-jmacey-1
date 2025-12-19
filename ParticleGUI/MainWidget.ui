@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout">
+  <layout class="QGridLayout" name="gridLayout" rowstretch="0,1">
    <item row="0" column="2">
     <widget class="QGroupBox" name="controls_gb">
      <property name="title">
@@ -100,8 +100,28 @@
      </property>
     </spacer>
    </item>
+   <item row="1" column="2">
+    <widget class="QGroupBox" name="nglcontrols">
+     <property name="title">
+      <string>NGL Controls</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <widget class="Vec3Widget" name="emitter_pos" native="true"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>Vec3Widget</class>
+   <extends>QWidget</extends>
+   <header>Vec3Widget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
