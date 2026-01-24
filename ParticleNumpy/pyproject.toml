@@ -1,0 +1,10 @@
+[project]
+name = "particlepyngl"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "debugpy>=1.8.17",
+    "ncca-ngl>=0.2.5",
+]
